@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkSmart - Intelligent Parking System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .role-badge {
+            background: var(--accent);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+            font-weight: 700;
+        }
+        .admin-badge { background: var(--danger); }
+        select option { color: #000; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Menu -->
+        <nav class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-square-parking"></i>
+                <span>ParkSmart</span>
+            </div>
+            <ul class="nav-links" id="sidebar-nav">
+                <li class="active" data-view="dashboard-view"><i class="fa-solid fa-chart-pie"></i> Dashboard</li>
+                <li data-view="bookings-view" id="nav-bookings"><i class="fa-solid fa-car"></i> My Bookings</li>
+                <li data-view="payments-view"><i class="fa-solid fa-wallet"></i> Payments</li>
+                <li data-view="analytics-view"><i class="fa-solid fa-chart-line"></i> Analytics</li>
+                <li id="logout-btn" style="margin-top: 2rem; color: var(--danger); cursor: pointer; padding: 0.875rem 1rem; border-radius: 8px; transition: all 0.3s ease;"><i class="fa-solid fa-right-from-bracket"></i> Logout</li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar glass-panel">
+                <h1 id="page-title">Live Availability</h1>
+                <div class="user-profile" style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600;" id="current-username">User</div>
+                        <div id="current-role" class="role-badge">USER</div>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=User&background=2563eb&color=fff" id="user-avatar" alt="User" class="avatar">
+                </div>
+            </header>
+
+            <div id="dashboard-view" class="view-section">
+                <div class="stats-container">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon open"><i class="fa-solid fa-car-side"></i></div>
+                        <div class="stat-info">
+                            <h3>Available Slots</h3>
+                            <p id="available-count">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon occupied"><i class="fa-solid fa-lock"></i></div>
+                        <div class="stat-info">
+                            <h3>Occupied</h3>
+                            <p id="occupied-count">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon rate"><i class="fa-solid fa-money-bill-wave"></i></div>
+                        <div class="stat-info">
+                            <h3>Standard Rate</h3>
+                            <p>₹5.00 / hr</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="parking-grid-container glass-panel">
+                    <h2>Parking Lot A</h2>
+                    <div class="parking-grid" id="parking-grid">
+                        <!-- Slots will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="bookings-view" class="view-section hidden glass-panel" style="padding: 2rem; min-height: 400px;">
+                <h2 id="bookings-title">My Bookings</h2>
+                <div id="bookings-list" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div id="payments-view" class="view-section hidden glass-panel" style="padding: 2rem; min-height: 400px;">
+                <h2>Payments History</h2>
+                <div id="payments-list" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div id="analytics-view" class="view-section hidden glass-panel" style="padding: 2rem; min-height: 400px;">
+                <h2 id="analytics-title">System Analytics</h2>
+                <div class="stats-container" style="margin-top: 2rem;">
+                    <div class="stat-card glass-panel" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                        <div class="stat-info">
+                            <h3 style="color: var(--success);"><i class="fa-solid fa-money-bill-trend-up"></i> Total Revenue</h3>
+                            <p id="analytics-revenue" style="font-size: 2rem; color: #fff; font-weight: 700; margin-top: 0.25rem;">₹0.00</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3);">
+                        <div class="stat-info">
+                            <h3 style="color: var(--accent);"><i class="fa-solid fa-car"></i> Total Bookings</h3>
+                            <p id="analytics-total-bookings" style="font-size: 2rem; color: #fff; font-weight: 700; margin-top: 0.25rem;">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                        <div class="stat-info">
+                            <h3 style="color: var(--danger);"><i class="fa-solid fa-lock"></i> Active Parking</h3>
+                            <p id="analytics-active-bookings" style="font-size: 2rem; color: #fff; font-weight: 700; margin-top: 0.25rem;">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Top Generating Slots</h3>
+                <div id="analytics-top-slots" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <!-- JS renders cards here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal overlay hidden" id="booking-modal">
+        <div class="modal-content glass-panel" style="max-width: 450px;">
+            <button class="close-btn" id="close-modal"><i class="fa-solid fa-times"></i></button>
+            <h2 id="modal-title">Slot <span id="modal-slot-number" class="highlight"></span></h2>
+            
+            <!-- Book Form -->
+            <form id="booking-form" class="modal-form">
+                <input type="hidden" id="slot-id-input">
+                <div class="form-group">
+                    <label for="vehicle-number">License Plate</label>
+                    <input type="text" id="vehicle-number" placeholder="e.g. ABC 1234" required>
+                </div>
+                <div class="price-info">
+                    <span>Rate: <strong id="modal-price">₹5.00/hr</strong></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Confirm Booking</button>
+            </form>
+
+            <!-- Checkout Info -->
+            <div id="checkout-info" class="hidden">
+                <p>Status: <span class="badge occupied" style="background: var(--danger);">Occupied</span></p>
+                <div class="timer">Ready to leave the parking space?</div>
+                <button id="checkout-btn" class="btn btn-danger">Checkout & Pay (Simulation)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Blocking) -->
+    <div class="modal overlay hidden" id="auth-modal" style="background: rgba(0,0,0,0.85); z-index: 1000;">
+        <div class="modal-content glass-panel" style="max-width: 380px;">
+            <div class="logo" style="display: flex; justify-content: center; margin-bottom: 2rem; align-items: center;">
+                <i class="fa-solid fa-square-parking" style="font-size: 2rem; color: var(--accent);"></i>
+                <span style="font-size: 1.75rem; font-weight: 700; margin-left: 0.75rem;">ParkSmart</span>
+            </div>
+            
+            <h2 id="auth-title" style="text-align: center; margin-bottom: 1.5rem;">Log In</h2>
+            
+            <form id="auth-form" class="modal-form">
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">Username</label>
+                    <input type="text" id="auth-username" required>
+                </div>
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">Password</label>
+                    <input type="password" id="auth-password" required>
+                </div>
+                
+                <div class="form-group hidden" id="role-group">
+                    <label style="color: #cbd5e1;">Role (Signup Only)</label>
+                    <select id="auth-role" style="width: 100%; padding: 0.85rem 1rem; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 8px; color: #fff; font-family: inherit; outline: none; transition: border-color 0.3s;">
+                        <option value="user">Standard User</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="auth-submit" style="margin-top: 1rem; padding: 1rem;">Login</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                <span id="auth-toggle-text">Don't have an account?</span> 
+                <a href="#" id="toggle-auth" style="color: var(--accent); text-decoration: none; font-weight: 600;">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
